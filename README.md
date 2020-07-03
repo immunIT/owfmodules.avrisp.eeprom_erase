@@ -1,4 +1,4 @@
-# owfmodules.skeleton
-Module base repository
+# owfmodules.avrisp.eeprom_erase
 
-Please read [CONTRIBUTING.md](https://github.com/immunIT/octowire-framework/blob/master/CONTRIBUTING.md) to follow the contribution process.
+Module allows erasing the eeprom memory of an AVR MCU through the ISP protocol.
+It use the SPI interface with a GPIO as reset line.
