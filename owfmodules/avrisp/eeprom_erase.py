@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+# Octowire Framework
+# Copyright (c) ImmunIT - Jordan Ovrè / Paul Duncan
+# License: Apache 2.0
+# Paul Duncan / Eresse <pduncan@immunit.ch>
+# Jordan Ovrè / Ghecko <jovre@immunit.ch>
+
 import struct
 import time
 
@@ -13,18 +21,18 @@ class EepromErase(AModule):
     def __init__(self, owf_config):
         super(EepromErase, self).__init__(owf_config)
         self.meta.update({
-            'name': 'AVR erase eeprom memory',
+            'name': 'AVR EEPROM memory erase',
             'version': '1.0.0',
-            'description': 'Module to erase the eeprom memory of an AVR device using the ISP protocol.',
+            'description': 'Erase the EEPROM memory of AVR microcontrollers',
             'author': 'Jordan Ovrè / Ghecko <jovre@immunit.ch>, Paul Duncan / Eresse <pduncan@immunit.ch>'
         })
         self.options = {
             "spi_bus": {"Value": "", "Required": True, "Type": "int",
-                        "Description": "The octowire SPI bus (0=SPI0 or 1=SPI1)", "Default": 0},
+                        "Description": "SPI bus (0=SPI0 or 1=SPI1)", "Default": 0},
             "reset_line": {"Value": "", "Required": True, "Type": "int",
-                           "Description": "The octowire GPIO used as the Reset line", "Default": 0},
+                           "Description": "GPIO used as the Reset line", "Default": 0},
             "spi_baudrate": {"Value": "", "Required": True, "Type": "int",
-                             "Description": "set SPI baudrate (1000000 = 1MHz) maximum = 50MHz", "Default": 1000000},
+                             "Description": "SPI frequency (1000000 = 1MHz) maximum = 50MHz", "Default": 1000000},
         }
         self.dependencies.append("owfmodules.avrisp.device_id>=1.0.0")
 
@@ -61,29 +69,27 @@ class EepromErase(AModule):
 
         # Drive reset low
         reset.status = 0
+        self.logger.handle("Enabling Memory Access...", self.logger.INFO)
 
-        self.logger.handle("Enable Memory Access...", self.logger.INFO)
-        # Drive reset low
-        reset.status = 0
         # Enable Memory Access
         spi_interface.transmit(enable_mem_access_cmd)
         time.sleep(0.5)
 
         # Fill the eeprom with 0xFF
-        self.logger.handle("Erasing the eeprom memory (Write 0xFF)...", self.logger.INFO)
-        for addr in tqdm(range(0, int(device["eeprom_size"], 16), 1), desc="Erase", ascii=" #", unit_scale=True,
+        self.logger.handle("Erasing the EEPROM memory (Write 0xFF)...", self.logger.INFO)
+        for addr in tqdm(range(0, int(device["eeprom_size"], 16), 1), desc="Erasing", ascii=" #", unit_scale=True,
                          bar_format="{desc} : {percentage:3.0f}%[{bar}] {n_fmt}/{total_fmt} bytes "
                                     "[elapsed: {elapsed} left: {remaining}]"):
             spi_interface.transmit(write_cmd + struct.pack(">H", addr) + b'\xFF')
             # Wait until byte write on the eeprom
             if not self.wait_poll_eeprom(spi_interface, 0xFF, addr):
-                self.logger.handle("\nWriting at byte address '{}' take too much time, exiting..".format(addr),
+                self.logger.handle("\nErasing at byte address '{}' took too long, exiting..".format(addr),
                                    self.logger.ERROR)
                 return False
 
         # Drive reset high
         reset.status = 1
-        self.logger.handle("Eeprom memory successfully erased.", self.logger.SUCCESS)
+        self.logger.handle("EEPROM memory successfully erased.", self.logger.SUCCESS)
         return True
 
     def process(self):
@@ -103,7 +109,7 @@ class EepromErase(AModule):
         # Configure GPIO as output
         reset.direction = GPIO.OUTPUT
 
-        # Active Reset is low
+        # Reset is active-low
         reset.status = 1
 
         # Erase the target chip
@@ -112,11 +118,11 @@ class EepromErase(AModule):
     def run(self, return_value=False):
         """
         Main function.
-        Erase the eeprom memory of an AVR device.
+        Erase the EEPROM memory of an AVR device.
         :return: Bool if return_value is true, else nothing.
         """
-        # If detect_octowire is True then Detect and connect to the Octowire hardware. Else, connect to the Octowire
-        # using the parameters that were configured. It sets the self.owf_serial variable if the hardware is found.
+        # If detect_octowire is True then detect and connect to the Octowire hardware. Else, connect to the Octowire
+        # using the parameters that were configured. This sets the self.owf_serial variable if the hardware is found.
         self.connect()
         if not self.owf_serial:
             return
