@@ -22,7 +22,7 @@ class EepromErase(AModule):
         super(EepromErase, self).__init__(owf_config)
         self.meta.update({
             'name': 'AVR EEPROM memory erase',
-            'version': '1.0.1',
+            'version': '1.0.2',
             'description': 'Erase the EEPROM memory of AVR microcontrollers',
             'author': 'Jordan Ovrè / Ghecko <jovre@immunit.ch>, Paul Duncan / Eresse <pduncan@immunit.ch>'
         })
@@ -32,7 +32,8 @@ class EepromErase(AModule):
             "reset_line": {"Value": "", "Required": True, "Type": "int",
                            "Description": "GPIO used as the Reset line", "Default": 0},
             "spi_baudrate": {"Value": "", "Required": True, "Type": "int",
-                             "Description": "SPI frequency (1000000 = 1MHz) maximum = 50MHz", "Default": 1000000},
+                             "Description": "SPI frequency (1000000 = 1MHz). Minimum: 240kHz - Maximum: 60MHz",
+                             "Default": 1000000},
         }
         self.dependencies.append("owfmodules.avrisp.device_id>=1.0.0")
 
